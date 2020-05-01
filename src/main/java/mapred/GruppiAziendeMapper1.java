@@ -1,10 +1,13 @@
+package mapred;
 import java.io.IOException;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
+import constants.HistoricalStockPricesConstants;
 
-public class GruppiAziendeMapper1  extends Mapper<Text, Text, Text, Text>{
+
+public class GruppiAziendeMapper1  extends Mapper<Object, Text, Text, Text>{
 	
 	
 	private Text ticker = new Text();
@@ -15,7 +18,7 @@ public class GruppiAziendeMapper1  extends Mapper<Text, Text, Text, Text>{
 
 	
 	@Override
-	protected void map(Text key, Text value, Mapper<Text, Text, Text, Text>.Context context)
+	protected void map(Object key, Text value, Mapper<Object, Text, Text, Text>.Context context)
 			throws IOException, InterruptedException {
 
 		String[] parts = value.toString().split(",");
