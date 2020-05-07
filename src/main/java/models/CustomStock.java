@@ -7,15 +7,13 @@ public class CustomStock {
 	private Integer anno;
 	private Integer mese;
 	private Integer giorno;
-	private String azienda;
 
-	public CustomStock(String ticker, Double close, Integer anno, Integer mese, Integer giorno, String azienda) {
+	public CustomStock(String ticker, Double close, Integer anno, Integer mese, Integer giorno) {
 		this.ticker = ticker;
 		this.close = close;
 		this.anno = anno;
 		this.mese = mese;
 		this.giorno = giorno;
-		this.azienda = azienda;
 	}
 
 	
@@ -74,22 +72,11 @@ public class CustomStock {
 	}
 
 
-	public String getAzienda() {
-		return azienda;
-	}
-
-
-	public void setAzienda(String azienda) {
-		this.azienda = azienda;
-	}
-
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((anno == null) ? 0 : anno.hashCode());
-		result = prime * result + ((azienda == null) ? 0 : azienda.hashCode());
 		result = prime * result + ((close == null) ? 0 : close.hashCode());
 		result = prime * result + ((giorno == null) ? 0 : giorno.hashCode());
 		result = prime * result + ((mese == null) ? 0 : mese.hashCode());
@@ -111,11 +98,6 @@ public class CustomStock {
 			if (other.anno != null)
 				return false;
 		} else if (!anno.equals(other.anno))
-			return false;
-		if (azienda == null) {
-			if (other.azienda != null)
-				return false;
-		} else if (!azienda.equals(other.azienda))
 			return false;
 		if (close == null) {
 			if (other.close != null)
@@ -144,7 +126,7 @@ public class CustomStock {
 	@Override
 	public String toString() {
 		return "CustomStock [ticker=" + ticker + ", close=" + close + ", anno=" + anno + ", mese=" + mese + ", giorno="
-				+ giorno + ", azienda=" + azienda + "]";
+				+ giorno+ "]";
 	}
 	
 	

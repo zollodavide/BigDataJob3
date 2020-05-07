@@ -118,7 +118,7 @@ public class GruppiAziendeReducer extends Reducer<Text, Text, Text, Text> {
 					max =stock;
 			}
 			
-			Integer trend = (int) Math.round((max.getClose() - min.getClose())/max.getClose());	
+			Integer trend = (int) Math.round(((max.getClose() - min.getClose())/min.getClose())*100);	
 			List<String> aziende;
 			if(trend2azienda2016.containsKey(trend)) 
 				aziende = trend2azienda2016.get(trend);
@@ -144,7 +144,7 @@ public class GruppiAziendeReducer extends Reducer<Text, Text, Text, Text> {
 					max =stock;
 			}
 			
-			Integer trend = (int) Math.round((max.getClose() - min.getClose())/max.getClose());	
+			Integer trend = (int) Math.round(((max.getClose() - min.getClose())/min.getClose())*100);	
 			List<String> aziende;
 			if(trend2azienda2017.containsKey(trend)) 
 				aziende = trend2azienda2017.get(trend);
@@ -170,7 +170,7 @@ public class GruppiAziendeReducer extends Reducer<Text, Text, Text, Text> {
 					max =stock;
 			}
 			
-			Integer trend = (int) Math.round((max.getClose() - min.getClose())/max.getClose());	
+			Integer trend = (int) Math.round(((max.getClose() - min.getClose())/min.getClose())*100);	
 			List<String> aziende;
 			if(trend2azienda2018.containsKey(trend)) 
 				aziende = trend2azienda2018.get(trend);
