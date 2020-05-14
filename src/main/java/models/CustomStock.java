@@ -4,22 +4,28 @@ public class CustomStock {
 
 	private String ticker;
 	private Double close;
+	private String azienda;
 	private Integer anno;
 	private Integer mese;
 	private Integer giorno;
-
-	public CustomStock(String ticker, Double close, Integer anno, Integer mese, Integer giorno) {
-		this.ticker = ticker;
-		this.close = close;
-		this.anno = anno;
-		this.mese = mese;
-		this.giorno = giorno;
-	}
 
 	
 	public CustomStock() {
 		
 	}
+
+	
+
+	public String getAzienda() {
+		return azienda;
+	}
+
+
+
+	public void setAzienda(String azienda) {
+		this.azienda = azienda;
+	}
+
 
 
 	public String getTicker() {
@@ -123,11 +129,15 @@ public class CustomStock {
 	}
 
 
+
 	@Override
 	public String toString() {
-		return "CustomStock [ticker=" + ticker + ", close=" + close + ", anno=" + anno + ", mese=" + mese + ", giorno="
-				+ giorno+ "]";
+		return "CustomStock [ticker=" + ticker + ", close=" + close + ", azienda=" + azienda + ", anno=" + anno
+				+ ", mese=" + mese + ", giorno=" + giorno + "]";
 	}
+
+
+
 	
 	
 	

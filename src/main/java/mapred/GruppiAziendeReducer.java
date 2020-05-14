@@ -2,6 +2,7 @@ package mapred;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +13,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import constants.ReducerConstants;
 import models.CustomStock;
+import models.Tuple;
 import utility.GruppiUtility;
 
 
@@ -19,7 +21,7 @@ public class GruppiAziendeReducer extends Reducer<Text, Text, Text, Text> {
 		
 	private Map<String, String> ticker2azienda = new HashMap<String, String>();
 	private Map<String, List<CustomStock>> ticker2stocks = new HashMap<String, List<CustomStock>>();
-
+	private List<CustomStock> stocks = new ArrayList<CustomStock>();
 	@Override
 	protected void reduce(Text key, Iterable<Text> values, Reducer<Text, Text, Text, Text>.Context context)
 			throws IOException, InterruptedException {
@@ -46,6 +48,7 @@ public class GruppiAziendeReducer extends Reducer<Text, Text, Text, Text> {
 					else
 						stocks = new ArrayList<CustomStock>();
 					
+					this.stocks.add(custom);
 					stocks.add(custom);
 					ticker2stocks.put(key.toString(), stocks);
 					
@@ -64,135 +67,84 @@ public class GruppiAziendeReducer extends Reducer<Text, Text, Text, Text> {
 	@Override
 	protected void cleanup(Reducer<Text, Text, Text, Text>.Context context) throws IOException, InterruptedException {
 
-		Map<String, List<CustomStock>> azienda2stock2016 = new HashMap<String, List<CustomStock>>();
-		Map<String, List<CustomStock>> azienda2stock2017 = new HashMap<String, List<CustomStock>>();
-		Map<String, List<CustomStock>> azienda2stock2018 = new HashMap<String, List<CustomStock>>();
-		
-		for(String tick : ticker2stocks.keySet()) {
-			
-			String azienda = ticker2azienda.get(tick);
-			List<CustomStock> val = ticker2stocks.get(tick);
-			
-			List<CustomStock> lista2016 = new ArrayList<CustomStock>(); 
-			List<CustomStock> lista2017 = new ArrayList<CustomStock>(); 
-			List<CustomStock> lista2018 = new ArrayList<CustomStock>(); 
-			
-			for(CustomStock stock : val) {	
-				if(stock.getAnno()==2016) 
-					lista2016.add(stock);
-				else if(stock.getAnno()==2017)	
-					lista2017.add(stock);
-				else
-					lista2018.add(stock);				
-			}
+		for(CustomStock st : this.stocks) 
+			st.setAzienda(ticker2azienda.get(st.getTicker()));
 
-			if (lista2016.size()!=0)
-				azienda2stock2016.put(azienda, lista2016); //OK
+		
+		Map<Tuple<String, Integer>,List<CustomStock>> aziendaAnno2stocks = new HashMap<Tuple<String,Integer>, List<CustomStock>>();
+		
+		for(CustomStock c : this.stocks) {
+			String azienda = c.getAzienda();
+			Integer anno = c.getAnno();
+			Tuple<String,Integer> key = new Tuple<String, Integer>(azienda, anno);
 			
-			if (lista2017.size()!=0)
-				azienda2stock2017.put(azienda, lista2017);
-			
-			
-			if (lista2018.size()!=0)
-				azienda2stock2018.put(azienda, lista2018);		
+			List<CustomStock> lst = new ArrayList<CustomStock>();
+			if(aziendaAnno2stocks.containsKey(key))
+				lst = aziendaAnno2stocks.get(key);
+			lst.add(c);
+			aziendaAnno2stocks.put(key, lst);
 		}
 		
 		
-		
-		Map<Integer, List<String>> trend2azienda2016  = new HashMap<Integer, List<String>>();
-		Map<Integer, List<String>> trend2azienda2017  = new HashMap<Integer, List<String>>();
-		Map<Integer, List<String>> trend2azienda2018  = new HashMap<Integer, List<String>>();
-		
-		
-		for(String azienda : azienda2stock2016.keySet()) {
-			
-			List<CustomStock> lst = azienda2stock2016.get(azienda);
+		Map<String, List<Tuple<Integer,Integer>>> azienda2annoDiff = new HashMap<String, List<Tuple<Integer,Integer>>>();
+		for(Tuple<String,Integer> key :  aziendaAnno2stocks.keySet()) {
 
-			CustomStock min = null;
-			CustomStock max = null;
+			CustomStock minStock = null;
+			CustomStock maxStock = null;
 			
-			for(CustomStock stock : lst) {
-				if(min == null || GruppiUtility.dataMinore(stock, min)) 
-					min = stock;
-				if(max == null || GruppiUtility.dataMaggiore(stock, max))
-					max =stock;
+			for(CustomStock c : aziendaAnno2stocks.get(key)) {
+
+				if(minStock == null || GruppiUtility.dataMinore(c, minStock))
+					minStock = c;
+				if(maxStock == null || GruppiUtility.dataMaggiore(c, maxStock))
+					maxStock = c;
+				
 			}
 			
-			Integer trend = (int) Math.round(((max.getClose() - min.getClose())/min.getClose())*100);	
-			List<String> aziende;
-			if(trend2azienda2016.containsKey(trend)) 
-				aziende = trend2azienda2016.get(trend);
-			else
-				aziende  = new ArrayList<String>();
+			Integer meanDiff = (int) (((maxStock.getClose() - minStock.getClose())/minStock.getClose())*100);
+			Tuple<Integer,Integer> value = new Tuple<Integer, Integer>(key.getSecond(), meanDiff);
 			
-			aziende.add(azienda);
-			trend2azienda2016.put(trend, aziende);
-		}
-		
-
-		for(String azienda : azienda2stock2017.keySet()) {
-			
-			List<CustomStock> lst = azienda2stock2017.get(azienda);
-
-			CustomStock min = null;
-			CustomStock max = null;
-			
-			for(CustomStock stock : lst) {
-				if(min == null || GruppiUtility.dataMinore(stock, min)) 
-					min = stock;
-				if(max == null || GruppiUtility.dataMaggiore(stock, max))
-					max =stock;
-			}
-			
-			Integer trend = (int) Math.round(((max.getClose() - min.getClose())/min.getClose())*100);	
-			List<String> aziende;
-			if(trend2azienda2017.containsKey(trend)) 
-				aziende = trend2azienda2017.get(trend);
-			else
-				aziende  = new ArrayList<String>();
-			
-			aziende.add(azienda);
-			trend2azienda2017.put(trend, aziende);
+			List<Tuple<Integer,Integer>> lst = new ArrayList<Tuple<Integer,Integer>>();
+			if(azienda2annoDiff.containsKey(key.getFirst()))
+				lst = azienda2annoDiff.get(key.getFirst());
+			lst.add(value);
+			azienda2annoDiff.put(key.getFirst(), lst);
 		}
 		
 		
-		for(String azienda : azienda2stock2018.keySet()) {
-			
-			List<CustomStock> lst = azienda2stock2018.get(azienda);
+		Map<String, List<String>> gruppi = new HashMap<String, List<String>>();
+		for(String azienda: azienda2annoDiff.keySet()) {
 
-			CustomStock min = null;
-			CustomStock max = null;
+			String D2016 = "";
+			String D2017 = "";
+			String D2018 = "";
 			
-			for(CustomStock stock : lst) {
-				if(min == null || GruppiUtility.dataMinore(stock, min)) 
-					min = stock;
-				if(max == null || GruppiUtility.dataMaggiore(stock, max))
-					max =stock;
+			for(Tuple<Integer,Integer> tup : azienda2annoDiff.get(azienda)) {
+				if(tup.getFirst() == 2016)
+					D2016 = tup.getSecond().toString();
+				else if(tup.getFirst() == 2017)
+					D2017 = tup.getSecond().toString();
+				else if(tup.getFirst() == 2018)
+					D2018 = tup.getSecond().toString();
 			}
+			if(D2016.length()==0)
+				D2016 = "0";
+			if(D2017.length()==0)
+				D2017 = "0";
+			if(D2018.length()==0)
+				D2018 = "0";
 			
-			Integer trend = (int) Math.round(((max.getClose() - min.getClose())/min.getClose())*100);	
-			List<String> aziende;
-			if(trend2azienda2018.containsKey(trend)) 
-				aziende = trend2azienda2018.get(trend);
-			else
-				aziende  = new ArrayList<String>();
+			String key = D2016 + "% " + D2017 + "% " + D2018 +"%";
 			
-			aziende.add(azienda);
-			trend2azienda2018.put(trend, aziende);
+			List<String> aziendeValues = new ArrayList<String>();
+			if(gruppi.containsKey(key)) 
+				aziendeValues = gruppi.get(key);
+			aziendeValues.add(azienda);
+			gruppi.put(key, aziendeValues);
 		}
 		
-		
-		for(Integer i : trend2azienda2016.keySet()) 
-			context.write(new Text("2016 "+ i.toString() + "%"), new Text(trend2azienda2016.get(i).toString()));
-
-		for(Integer i : trend2azienda2017.keySet()) 
-			context.write(new Text("2017 "+ i.toString() + "%"), new Text(trend2azienda2017.get(i).toString()));
-
-		for(Integer i : trend2azienda2018.keySet()) 
-			context.write(new Text("2018 "+ i.toString() + "%"), new Text(trend2azienda2018.get(i).toString()));
-
-		
-		
+		for(String k : gruppi.keySet() ) 
+			context.write(new Text(k + " = "), new Text(gruppi.get(k).toString()));
 		
 
 	}	
